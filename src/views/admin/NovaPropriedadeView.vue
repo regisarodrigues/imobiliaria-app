@@ -1,0 +1,115 @@
+<script setup>
+import { addDoc, collection } from 'firebase/firestore';
+import { useField, useForm } from 'vee-validate';
+import { useRouter } from 'vue-router';
+import { useFirestore } from 'vuefire';
+import useImage from '../../composables/useImage';
+import { imageSchema, validationSchema } from '../../validation/propiedadSchema';
+
+const items = [1, 2, 3, 4];
+const { uploadImage, image } = useImage();
+const router = useRouter();
+const db = useFirestore();
+const { handleSubmit } = useForm({
+  validationSchema: {
+    ...validationSchema,
+    ...imageSchema
+  }
+});
+
+const titulo = useField('titulo');
+const imagen = useField('imagen');
+const precio = useField('precio');
+const habitaciones = useField('habitaciones');
+const wc = useField('wc');
+const estacionamiento = useField('estacionamiento');
+const descripcion = useField('descripcion');
+const piscina = useField('piscina', null, { initialValue: false });
+
+const submit = handleSubmit(async (values) => {
+  const { imagen, ...propiedad } = values;
+  const docRef = await addDoc(collection(db, 'imoveis'), {
+    ...propiedad
+  });
+
+  if (docRef.id) router.push({ name: 'admin-propriedades' });
+});
+</script>
+
+<template>
+  <v-card max-width="800" flat class="mx-auto my-10">
+    <v-card-title class="text-h3 font-weight-bold"> Novo Imóvel </v-card-title>
+    <v-card-subtitle class="text-h5 py-5">Adicionar novo imóvel</v-card-subtitle>
+    <v-form class="mt-10">
+      <v-text-field
+        class="mb-5"
+        label="Nome imóvel - Ex: casa de praia"
+        v-model="titulo.value.value"
+        :error-messages="titulo.errorMessage.value"
+      />
+      <v-file-input
+        accept="image/jpeg"
+        prepend-icon="mdi-camera"
+        class="mb-5"
+        v-model="imagen.value.value"
+        :error-messages="imagen.errorMessage.value"
+        @change="uploadImage"
+      />
+
+      <div class="my-5" v-if="image">
+        <p class="font-weight-bold">Imagem Propriedade:</p>
+        <img class="w-50" :src="image" />
+      </div>
+
+      <v-text-field
+        type="number"
+        class="mb-5"
+        label="Valor R$"
+        v-model="precio.value.value"
+        :error-messages="precio.errorMessage.value"
+      />
+      <v-row>
+        <v-col cols="12" md="4">
+          <v-select
+            label="Qtd. Dormitórios"
+            class="mb-5"
+            :items="items"
+            v-model="habitaciones.value.value"
+            :error-messages="habitaciones.errorMessage.value"
+          />
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-select
+            label="Qtd. Banheiro"
+            class="mb-5"
+            :items="items"
+            v-model="wc.value.value"
+            :error-messages="wc.errorMessage.value"
+          />
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-select
+            label="Qtd. Garagem"
+            class="mb-5"
+            :items="items"
+            v-model="estacionamiento.value.value"
+            :error-messages="estacionamiento.errorMessage.value"
+          />
+        </v-col>
+      </v-row>
+      <v-textarea
+        class="mb-5"
+        label="Descrição imóvel"
+        v-model="descripcion.value.value"
+        :error-messages="descripcion.errorMessage.value"
+      >
+      </v-textarea>
+      <v-checkbox
+        label="Piscina"
+        v-model="piscina.value.value"
+        :error-messages="piscina.errorMessage.value"
+      />
+      <v-btn color="pink-accent-3" block @click="submit"> Adicionar Imóvel </v-btn>
+    </v-form>
+  </v-card>
+</template>
