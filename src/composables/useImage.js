@@ -9,7 +9,7 @@ export default function useImage() {
   const { url, upload } = useStorageFile(storageRefPath);
 
   function uploadImage(e) {
-    const data = e.target.file[0];
+    const data = e.target.files[0];
     if (data) {
       upload(data);
     }
@@ -19,6 +19,7 @@ export default function useImage() {
   });
 
   return {
+    url,
     uploadImage,
     image
   };
